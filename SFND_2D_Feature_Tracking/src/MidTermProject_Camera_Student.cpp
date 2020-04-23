@@ -75,7 +75,7 @@ int main(int argc, const char *argv[])
 
         // extract 2D keypoints from current image
         vector<cv::KeyPoint> keypoints; // create empty feature list for current image
-        string detectorType = "SHITOMASI";
+        string detectorType = "ORB";
 
         //// STUDENT ASSIGNMENT
         //// TASK MP.2 -> add the following keypoint detectors in file matching2D.cpp and enable string-based selection based on detectorType
@@ -84,10 +84,15 @@ int main(int argc, const char *argv[])
         if (detectorType.compare("SHITOMASI") == 0)
         {
             detKeypointsShiTomasi(keypoints, imgGray, false);
-        }
-        else
+        } else if (detectorType.compare("HARRIS") == 0) {
+            detKeypointsHarris(keypoints, imgGray, false);
+        } else if (detectorType.compare("FAST") == 0 || 
+                   detectorType.compare("BRISK") == 0 || 
+                   detectorType.compare("ORB") == 0 || 
+                   detectorType.compare("AKAZE") == 0 || 
+                   detectorType.compare("SIFT") == 0) 
         {
-            //...
+            detKeypointsModern(keypoints, imgGray, detectorType, false);
         }
         //// EOF STUDENT ASSIGNMENT
 
@@ -97,9 +102,22 @@ int main(int argc, const char *argv[])
         // only keep keypoints on the preceding vehicle
         bool bFocusOnVehicle = true;
         cv::Rect vehicleRect(535, 180, 180, 150);
+        vector<cv::KeyPoint>::iterator kp;
+        vector<cv::KeyPoint> keypoints_ROI; 
+
         if (bFocusOnVehicle)
         {
-            // ...
+            for (kp = keypoints.begin(); kp != keypoints.end(); ++kp)
+            {
+                if (vehicleRect.contains(kp->pt))
+                {
+                    cv::KeyPoint selectedKeyPoint;
+                    selectedKeyPoint.pt = cv::Point2f(kp->pt);
+                    selectedKeyPoint.size = 1;
+                    keypoints_ROI.push_back(selectedKeyPoint);
+                }
+            }
+        keypoints = keypoints_ROI;
         }
 
         //// EOF STUDENT ASSIGNMENT
