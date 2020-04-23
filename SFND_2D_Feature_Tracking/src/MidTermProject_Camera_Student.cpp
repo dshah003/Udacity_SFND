@@ -96,9 +96,6 @@ int main(int argc, const char *argv[])
         }
         //// EOF STUDENT ASSIGNMENT
 
-        //// STUDENT ASSIGNMENT
-        //// TASK MP.3 -> only keep keypoints on the preceding vehicle
-
         // only keep keypoints on the preceding vehicle
         bool bFocusOnVehicle = true;
         cv::Rect vehicleRect(535, 180, 180, 150);
@@ -119,8 +116,6 @@ int main(int argc, const char *argv[])
             }
         keypoints = keypoints_ROI;
         }
-
-        //// EOF STUDENT ASSIGNMENT
 
         // optional : limit number of keypoints (helpful for debugging and learning)
         bool bLimitKpts = true;
