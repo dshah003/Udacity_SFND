@@ -7,31 +7,43 @@ using namespace std;
 void matchDescriptors(std::vector<cv::KeyPoint> &kPtsSource, std::vector<cv::KeyPoint> &kPtsRef, cv::Mat &descSource, cv::Mat &descRef,
                       std::vector<cv::DMatch> &matches, std::string descriptorType, std::string matcherType, std::string selectorType)
 {
-    // configure matcher
     bool crossCheck = false;
     cv::Ptr<cv::DescriptorMatcher> matcher;
 
-    if (matcherType.compare("MAT_BF") == 0)
-    {
-        int normType = cv::NORM_HAMMING;
+    if (matcherType.compare("MAT_BF") == 0) {
+        int normType;
+        if (descriptorType.compare("DES_HOG"))
+        {
+            normType = cv::NORM_L2;
+        } else if (descriptorType.compare("DES_BINARY")) {
+            normType = cv::NORM_HAMMING;
+        }
         matcher = cv::BFMatcher::create(normType, crossCheck);
-    }
-    else if (matcherType.compare("MAT_FLANN") == 0)
-    {
-        // ...
+    } else if (matcherType.compare("MAT_FLANN") == 0) {
+        if (descSource.type() != CV_32F) {
+            descSource.convertTo(descSource, CV_32F);
+        } 
+        if (descRef.type() != CV_32F) {
+            descRef.convertTo(descRef, CV_32F);
+        }
+        matcher = cv::FlannBasedMatcher::create();
     }
 
     // perform matching task
-    if (selectorType.compare("SEL_NN") == 0)
-    { // nearest neighbor (best match)
-
+    double t = (double)cv::getTickCount();
+    if (selectorType.compare("SEL_NN") == 0) { // nearest neighbor (best match)
         matcher->match(descSource, descRef, matches); // Finds the best match for each descriptor in desc1
+    } else if (selectorType.compare("SEL_KNN") == 0) { // k nearest neighbors (k=2)
+        vector<vector<cv::DMatch>> tempMatches;
+        matcher->knnMatch(descSource, descRef, tempMatches, 2);
+        double minDescDistRatio = 0.8;
+        for (auto iter = tempMatches.begin(); iter != tempMatches.end(); ++iter) {
+            if (((*iter)[0].distance) < (*iter)[1].distance * minDescDistRatio) {
+                matches.push_back((*iter)[0]);
+            }
+        }
     }
-    else if (selectorType.compare("SEL_KNN") == 0)
-    { // k nearest neighbors (k=2)
-
-        // ...
-    }
+    t = ((double)cv::getTickCount() - t) / cv::getTickFrequency();
 }
 
 // Use one of several types of state-of-art descriptors to uniquely identify keypoints
